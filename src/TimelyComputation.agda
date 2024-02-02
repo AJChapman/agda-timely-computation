@@ -2,11 +2,21 @@
 module TimelyComputation where
 
 open import Level using (_⊔_; Level)
-open import Data.Rational using (ℚ)
+open import Data.Bool using (Bool)
+open import Function using (const)
+open import Data.Integer using (+_)
+open import Data.Nat using () -- For NonZero-ness of rational denominators
+open import Data.Product as P using (_,_)
+open import Data.Rational using (ℚ; _/_; _-_)
+open import Data.Unit.Polymorphic using (tt)
+open import Felix.Object using (⊤; _×_; Products)
+open import Felix.Instances.Function.Type Level.zero using (_⇾_; module →-instances)
+open import Felix.Instances.Function.Raw Level.zero using (module →-raw-instances)
+open import Felix.Raw using (Category; _∘_; Cartesian; dup)
 
 private
   variable
-    o : Level
+    o ℓ : Level
     obj : Set o
 
 𝕋 : Set
@@ -17,18 +27,9 @@ record Boolean (obj : Set o) : Set o where
     𝔹 : obj
 open Boolean ⦃ ... ⦄ public
 
-open import Data.Bool using (Bool)
-open import Felix.Object using (⊤; _×_; Products)
-open import Data.Unit as U using ()
-open import Data.Product as P using ()
-
 instance
   BooleanSet : Boolean Set
   𝔹 ⦃ BooleanSet ⦄ = Bool
-
-  ProductsSet : Products Set
-  ⊤   ⦃ ProductsSet ⦄ = U.⊤
-  _×_ ⦃ ProductsSet ⦄ = P._×_
 
 𝕊 : ⦃ Boolean obj ⦄ → Set
 𝕊 = 𝕋 → 𝔹
@@ -39,33 +40,36 @@ _ ⁰ = ⊤
 _² : ⦃ Products obj ⦄ → obj → obj
 A ² = A × A
 
--- dup : ∀ {a} → {A : Set a} → A → A × A
--- dup a = a , a
-
-open import Data.Rational using (_-_)
-
-analog₀ : ⦃ Boolean obj ⦄ → ⦃ Products obj ⦄ → 𝕋 ⁰ → (𝔹 ⁰ → 𝔹) → (𝕊 ⁰ → 𝕊)
+analog₀ : 𝕋 ⁰ → (𝔹 ⁰ → 𝔹) → (𝕊 ⁰ → 𝕊)
 analog₀ tt h tt = λ t → h tt
 
 analog₁ : 𝕋 → (𝔹 → 𝔹) → (𝕊 → 𝕊)
 analog₁ δ h x̃ = λ t → h (x̃ (t - δ))
 
--- analog₂ : 𝕋 ² → (𝔹 ² → 𝔹) → (𝕊 ² → 𝕊)
--- analog₂ (δ₁ , δ₂) h (x̃₁ , x̃₂) = λ t → h (x̃₁ (t - δ₁) , x̃₂ (t - δ₂))
+analog₂ : 𝕋 ² → (𝔹 ² → 𝔹) → (𝕊 ² → 𝕊)
+analog₂ (δ₁ , δ₂) h (x̃₁ , x̃₂) = λ t → h (x̃₁ (t - δ₁) , x̃₂ (t - δ₂))
 
-open import Data.Integer using (+_)
-open import Data.Unit using (tt)
-open import Data.Rational using (_/_)
-open import Data.Nat using () -- For NonZero-ness of rational denominators
-
+δ-false δ-true : 𝕋 ⁰
 δ-false = tt
 δ-true = tt
-δ-not = + 1 / 10
--- δ-nand = dup (+ 1 / 5)
--- δ-nor = dup (+ 1 / 5)
--- δ-xor = dup (+ 1 / 4)
 
-open import Felix.Raw using (Category; _∘_)
+δ-not : 𝕋
+δ-not = + 1 / 10
+
+δ-nand : 𝕋 ²
+δ-nand = dup (+ 1 / 5)
+δ-nor = dup (+ 1 / 5)
+δ-xor = dup (+ 1 / 4)
+
+--record ConstCat {o} {obj : Set o} 
+                --{ℓ} (_⇨′_ : obj → obj → Set ℓ) : Set (o ⊔ ℓ) where
+  --private infix 0 _⇨_; _⇨_ = _⇨′_
+  --field
+    --unitArrow : {o : Level} → {obj : Set o} → obj → (⊤ ⇨ obj)
+
+-- instance
+  -- constcat : ConstCat _⇾_
+  -- constcat = record { unitArrow = const }
 
 record Logic ⦃ _ : Products obj ⦄ ⦃ _ : Boolean obj ⦄
              {ℓ} (_⇨′_ : obj → obj → Set ℓ) : Set (o ⊔ ℓ) where
@@ -79,5 +83,10 @@ record Logic ⦃ _ : Products obj ⦄ ⦃ _ : Boolean obj ⦄
   or  = not ∘ nor
 open Logic ⦃ ... ⦄ public
 
--- nandᴬ : ⦃ _ : Products obj ⦄ ⦃ _ : Boolean obj ⦄ ⦃ _ : Logic {o} {obj} _ ⦄ → 𝕊 ² → 𝕊
+-- instance
+  -- logic : Logic _⇾_
+  -- logic = record { false = 
+-- 
+-- nandᴬ : 𝕊 ² → 𝕊
 -- nandᴬ = analog₂ δ-nand nand
+-- 

@@ -2,17 +2,18 @@
 module TimelyComputation where
 
 open import Level using (_⊔_; Level)
-open import Data.Bool using (Bool)
 open import Function using (const)
+open import Data.Bool as B using (Bool)
 open import Data.Integer using (+_)
 open import Data.Nat using () -- For NonZero-ness of rational denominators
 open import Data.Product as P using (_,_)
 open import Data.Rational using (ℚ; _/_; _-_)
 open import Data.Unit.Polymorphic using (tt)
+
 open import Felix.Object using (⊤; _×_; Products)
 open import Felix.Instances.Function.Type Level.zero using (_⇾_; module →-instances)
 open import Felix.Instances.Function.Raw Level.zero using (module →-raw-instances)
-open import Felix.Raw using (Category; _∘_; Cartesian; dup)
+open import Felix.Raw using (Category; _∘_; Cartesian; dup; CartesianClosed)
 
 private
   variable
@@ -61,17 +62,7 @@ analog₂ (δ₁ , δ₂) h (x̃₁ , x̃₂) = λ t → h (x̃₁ (t - δ₁) ,
 δ-nor = dup (+ 1 / 5)
 δ-xor = dup (+ 1 / 4)
 
---record ConstCat {o} {obj : Set o} 
-                --{ℓ} (_⇨′_ : obj → obj → Set ℓ) : Set (o ⊔ ℓ) where
-  --private infix 0 _⇨_; _⇨_ = _⇨′_
-  --field
-    --unitArrow : {o : Level} → {obj : Set o} → obj → (⊤ ⇨ obj)
-
--- instance
-  -- constcat : ConstCat _⇾_
-  -- constcat = record { unitArrow = const }
-
-record Logic ⦃ _ : Products obj ⦄ ⦃ _ : Boolean obj ⦄
+record Logic {obj : Set o} ⦃ _ : Products obj ⦄ ⦃ _ : Boolean obj ⦄
              {ℓ} (_⇨′_ : obj → obj → Set ℓ) : Set (o ⊔ ℓ) where
   private infix 0 _⇨_; _⇨_ = _⇨′_
   field
@@ -83,10 +74,15 @@ record Logic ⦃ _ : Products obj ⦄ ⦃ _ : Boolean obj ⦄
   or  = not ∘ nor
 open Logic ⦃ ... ⦄ public
 
--- instance
-  -- logic : Logic _⇾_
-  -- logic = record { false = 
--- 
--- nandᴬ : 𝕊 ² → 𝕊
--- nandᴬ = analog₂ δ-nand nand
--- 
+instance
+  SetLogic : Logic _⇾_
+  false ⦃ SetLogic ⦄ = const B.false
+  true  ⦃ SetLogic ⦄ = const B.true
+  not   ⦃ SetLogic ⦄ = B.not
+  nand  ⦃ SetLogic ⦄ = not ∘ (P.uncurry B._∧_)
+  nor   ⦃ SetLogic ⦄ = not ∘ (P.uncurry B._∨_)
+  xor   ⦃ SetLogic ⦄ = P.uncurry B._xor_
+  
+nandᴬ : 𝕊 ² → 𝕊
+nandᴬ = analog₂ δ-nand nand
+    
